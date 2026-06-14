@@ -5,6 +5,7 @@ import { initSocket } from './lib/socket.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import projectRoutes from './routes/project.js'
 import taskRoutes from './routes/task.js'
+import invoiceRoutes from './routes/invoice.js'
 
 const app = express()
 const httpServer = createServer(app)
@@ -15,7 +16,7 @@ initSocket(httpServer)
 // app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhook)
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
   credentials: true,
 }))
 app.use(express.json())
@@ -26,10 +27,9 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/projects', projectRoutes)
 app.use('/api/projects/:projectId/tasks', taskRoutes)
+app.use('/api/invoices', invoiceRoutes)
 
 // Uncomment as we build:
-// app.use('/api/time', timeRoutes)
-// app.use('/api/invoices', invoiceRoutes)
 // app.use('/api/stripe', stripeRoutes)
 // app.use('/app/portal', clientRoutes)
 // app.use('/api/members', memberRoutes)

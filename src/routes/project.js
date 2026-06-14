@@ -12,20 +12,21 @@ import {
   deleteProject,
 } from "../controllers/project/projectController.js";
 import projectTimeRoutes from "./projectTime.js";
+import projectInvoiceRoutes from "./projectInvoice.js";
+
 const router = Router();
 
-// All project routes require authentication
 router.use(authenticate);
 
 router.get("/", getProjects);
 router.post("/", createProject);
 
-// Routes below need project membership check
 router.get("/:projectId", authorizeProject, getProject);
 router.patch("/:projectId", authorizeProject, requireOwner, updateProject);
 router.delete("/:projectId", authorizeProject, requireOwner, deleteProject);
 
-//Project-wide time summary
-router.use("/:projectId", projectTimeRoutes);
+// Nested resources — projectId available via mergeParams
+router.use("/:projectId/time", authorizeProject, projectTimeRoutes);
+router.use("/:projectId/invoices", authorizeProject, projectInvoiceRoutes);
 
 export default router;
