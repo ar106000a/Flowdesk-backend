@@ -1,22 +1,15 @@
-import { Router } from "express";
-import { authenticate } from "../middleware/authenticate.js";
-import {
-  getInvoices,
-  getInvoice,
-  updateInvoice,
-  deleteInvoice,
-} from "../controllers/invoice/invoiceController.js";
+import { Router } from 'express'
+import { authenticate } from '../middleware/authenticate.js'
+import { getInvoices, getInvoice, updateInvoice, deleteInvoice } from '../controllers/invoice/invoiceController.js'
+import { generateInvoicePdf } from '../controllers/invoice/pdfController.js'
 
-const router = Router();
+const router = Router()
+router.use(authenticate)
 
-router.use(authenticate);
+router.get('/', getInvoices)
+router.get('/:invoiceId', getInvoice)
+router.patch('/:invoiceId', updateInvoice)
+router.delete('/:invoiceId', deleteInvoice)
+router.post('/:invoiceId/pdf', generateInvoicePdf)
 
-// Global — all invoices across user's projects
-router.get("/", getInvoices);
-
-// Single invoice — authorization checked inside controller
-router.get("/:invoiceId", getInvoice);
-router.patch("/:invoiceId", updateInvoice);
-router.delete("/:invoiceId", deleteInvoice);
-
-export default router;
+export default router
