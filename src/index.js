@@ -6,6 +6,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import projectRoutes from "./routes/project.js";
 import taskRoutes from "./routes/task.js";
 import invoiceRoutes from "./routes/invoice.js";
+import clientPublicRoutes from "./routes/clientPublic.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -25,6 +26,9 @@ app.get("/api/health", (req, res) =>
 app.use("/api/projects", projectRoutes);
 app.use("/api/projects/:projectId/tasks", taskRoutes);
 app.use("/api/invoices", invoiceRoutes);
+
+// Public client portal — no auth, mounted under /app not /api
+app.use("/app/portal", clientPublicRoutes);
 
 app.use((req, res) =>
   res.status(404).json({ message: `${req.method} ${req.path} not found` }),
