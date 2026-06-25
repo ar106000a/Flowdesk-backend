@@ -2,37 +2,54 @@ import supabase from "../../lib/supabase.js";
 import { AppError } from "../../utils/AppError.js";
 import { getIO } from "../../lib/socket.js";
 
-// ─── GET /api/projects/:projectId/tasks ───────────────────────────────────────
 export async function getTasks(req, res, next) {
   try {
     const { projectId } = req.params;
-
     const { data: tasks, error } = await supabase
       .from("tasks")
       .select("*")
       .eq("project_id", projectId)
       .order("status")
       .order("position");
-
     if (error) throw new AppError(error.message, 500);
-
     res.json({ data: tasks });
   } catch (err) {
     next(err);
   }
 }
 
-// ─── POST /api/projects/:projectId/tasks ──────────────────────────────────────
+// ─── GET single task with attachments ─────────────────────────────────────────
+export async function getTask(req, res, next) {
+  try {
+    const { projectId, taskId } = req.params;
+    const { data: task, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("id", taskId)
+      .eq("project_id", projectId)
+      .single();
+    if (error || !task) throw new AppError("Task not found", 404);
+
+    const { data: attachments } = await supabase
+      .from("task_attachments")
+      .select("*")
+      .eq("task_id", taskId)
+      .order("uploaded_at", { ascending: false });
+
+    res.json({ data: { ...task, attachments: attachments ?? [] } });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function createTask(req, res, next) {
   try {
     const { projectId } = req.params;
     const { title, description, status, priority, assignee_id, due_date } =
       req.body;
     const userId = req.user.id;
-
     if (!title?.trim()) throw new AppError("Task title is required", 400);
 
-    // Get highest position in target column
     const { data: lastTask } = await supabase
       .from("tasks")
       .select("position")
@@ -61,19 +78,15 @@ export async function createTask(req, res, next) {
       .single();
 
     if (error) throw new AppError(error.message, 500);
-
-    // Emit to all users viewing this project
     getIO()
       .to(`project:${projectId}`)
       .emit("task:created", { task, projectId });
-
     res.status(201).json({ data: task });
   } catch (err) {
     next(err);
   }
 }
 
-// ─── PATCH /api/projects/:projectId/tasks/:taskId ─────────────────────────────
 export async function updateTask(req, res, next) {
   try {
     const { projectId, taskId } = req.params;
@@ -86,7 +99,6 @@ export async function updateTask(req, res, next) {
       due_date,
       position,
     } = req.body;
-
     const updates = {};
     if (title !== undefined) updates.title = title.trim();
     if (description !== undefined) updates.description = description;
@@ -103,36 +115,28 @@ export async function updateTask(req, res, next) {
       .eq("project_id", projectId)
       .select()
       .single();
-
     if (error) throw new AppError(error.message, 500);
-
     getIO()
       .to(`project:${projectId}`)
       .emit("task:updated", { task, projectId });
-
     res.json({ data: task });
   } catch (err) {
     next(err);
   }
 }
 
-// ─── DELETE /api/projects/:projectId/tasks/:taskId ────────────────────────────
 export async function deleteTask(req, res, next) {
   try {
     const { projectId, taskId } = req.params;
-
     const { error } = await supabase
       .from("tasks")
       .delete()
       .eq("id", taskId)
       .eq("project_id", projectId);
-
     if (error) throw new AppError(error.message, 500);
-
     getIO()
       .to(`project:${projectId}`)
       .emit("task:deleted", { taskId, projectId });
-
     res.json({ data: { message: "Task deleted" } });
   } catch (err) {
     next(err);

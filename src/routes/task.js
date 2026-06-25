@@ -6,23 +6,24 @@ import {
   createTask,
   updateTask,
   deleteTask,
+  getTask,
 } from "../controllers/task/taskController.js";
 import commentRoutes from "./comment.js";
 import timeRoutes from "./time.js";
+import attachmentRoutes from "./attachments.js";
 
 const router = Router({ mergeParams: true });
-
 router.use(authenticate);
 router.use(authorizeProject);
 
 router.get("/", getTasks);
 router.post("/", createTask);
 router.patch("/:taskId", updateTask);
+router.get("/:taskId", getTask);
 router.delete("/:taskId", deleteTask);
 
-// Nest comment routes under /:taskId/comments
-// mergeParams on both routers ensures projectId and taskId are available
 router.use("/:taskId/comments", commentRoutes);
 router.use("/:taskId/time", timeRoutes);
+router.use("/:taskId/attachments", attachmentRoutes);
 
 export default router;

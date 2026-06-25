@@ -6,8 +6,8 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import projectRoutes from "./routes/project.js";
 import taskRoutes from "./routes/task.js";
 import invoiceRoutes from "./routes/invoice.js";
-import clientPublicRoutes from "./routes/clientPublic.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import clientPublicRoutes from "./routes/clientPublic.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -19,7 +19,7 @@ app.use(
     credentials: true,
   }),
 );
-app.use(express.json());
+app.use(express.json({ limit: "15mb" })); // increased for base64 file uploads
 
 app.get("/api/health", (req, res) =>
   res.json({ status: "ok", timestamp: new Date().toISOString() }),
