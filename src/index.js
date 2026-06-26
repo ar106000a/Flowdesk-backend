@@ -28,7 +28,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/projects/:projectId/tasks", taskRoutes);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-app.use("/app/portal", clientPublicRoutes);
+app.use("/api/portal", clientPublicRoutes);
 
 app.use((req, res) =>
   res.status(404).json({ message: `${req.method} ${req.path} not found` }),
